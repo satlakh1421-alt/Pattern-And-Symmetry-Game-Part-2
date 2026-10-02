@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pattern Pulse: Symmetry Circuit</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Fullscreen Viewport Reset for direct browser preview */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #060913;
+    }
+  </style>
+  <script>
+    // MOCK PLATFORM RUNTIME (For local testing)
+    window.root = document;
+    window.game = {
+      config: { maxPoints: 100 },
+      end: function (result) {
+        console.log("Game Ended:", result);
+      }
+    };
+  </script>
+</head>
+<body>
+
+<div class="game-wrapper" id="game-wrapper">
+
+  <!-- TOP BAR / CONTROLS -->
+  <div class="top-controls">
+    <button class="icon-btn" id="btn-fullscreen-toggle" aria-label="Toggle Fullscreen" title="Full Screen">
+      <span id="fullscreen-icon">⛶</span>
+    </button>
+    <button class="icon-btn" id="btn-sound-toggle" aria-label="Toggle Sound" title="Sound On/Off">
+      <span id="sound-icon">🔊</span>
+    </button>
+  </div>
+
+  <!-- SCREEN 1: START SCREEN -->
+  <section class="screen active" id="screen-start">
+    <div class="screen-card start-card">
+      <div class="badge-pill">Cambridge Maths • Pattern & Symmetry • Floor 2</div>
+      <h1 class="game-title">Pattern Pulse<br><span class="gradient-text">Symmetry Circuit</span></h1>
+      <p class="game-subtitle">Decode repeating sequences and rotational symmetry! Rotate, reflect, and lock the missing geometric pulses into the power circuit.</p>
+
+      <div class="mascot-preview">
+        <canvas id="canvas-start-preview" width="320" height="140"></canvas>
+      </div>
+
+      <div class="menu-btn-group">
+        <button class="game-btn btn-primary" id="btn-play">
+          <span class="btn-icon">⚡</span> Power Up Circuit
+        </button>
+        <button class="game-btn btn-secondary" id="btn-instructions">
+          <span class="btn-icon">💡</span> How to Play
+        </button>
+      </div>
+
+      <div class="start-features">
+        <span>🔄 90° & 180° Rotational Symmetry</span>
+        <span>🪞 Reflection & Sequence Rules</span>
+        <span>📱 Tablet & Touch Ready</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: INSTRUCTIONS (Visual & Animated) -->
+  <section class="screen" id="screen-instructions">
+    <div class="screen-card instructions-card">
+      <h2 class="section-title">How to Play</h2>
+      <p class="section-desc">Observe the moving sequence, discover the symmetry rule, and tap to rotate & lock the missing piece!</p>
+
+      <!-- Animated Visual Demo Canvas -->
+      <div class="demo-container">
+        <canvas id="canvas-instruction-demo" width="360" height="150"></canvas>
+        <div class="demo-caption" id="demo-caption">Watch: Analyze the sequence rule → Rotate/Flip the token → Tap to insert!</div>
+      </div>
+
+      <!-- Visual Rule Cards -->
+      <div class="visual-rules-grid">
+        <div class="rule-card">
+          <div class="rule-icon">🔍</div>
+          <div class="rule-title">1. Find the Rule</div>
+          <div class="rule-text">Is it rotating 90° clockwise? Flipping like a mirror? Alternating colors?</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-icon">🔄</div>
+          <div class="rule-title">2. Transform Token</div>
+          <div class="rule-text">Tap the Rotate or Flip buttons to transform your token to match the rule!</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-icon">⚡</div>
+          <div class="rule-title">3. Complete Circuit</div>
+          <div class="rule-text">Lock the token into the glowing slot before the surge reaches it for combos!</div>
+        </div>
+      </div>
+
+      <button class="game-btn btn-primary" id="btn-start-from-how">
+        <span class="btn-icon">🚀</span> Start Challenge!
+      </button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: COUNTDOWN -->
+  <section class="screen" id="screen-countdown">
+    <div class="countdown-wrapper">
+      <div class="countdown-glow"></div>
+      <div class="countdown-number" id="countdown-number">3</div>
+      <div class="countdown-label">Charging Symmetry Cores...</div>
+    </div>
+  </section>
+
+  <!-- SCREEN 4: MAIN GAMEPLAY HUD & CIRCUIT CANVAS -->
+  <section class="screen" id="screen-game">
+    <!-- HUD Header -->
+    <header class="game-hud">
+      <div class="hud-item hud-level">
+        <span class="hud-label">LEVEL</span>
+        <span class="hud-val" id="hud-level-val">1/5</span>
+      </div>
+
+      <div class="hud-item hud-timer">
+        <span class="hud-label">TIME</span>
+        <div class="timer-box">
+          <span class="timer-icon">⏳</span>
+          <span class="hud-val" id="hud-timer-val">35s</span>
+        </div>
+      </div>
+
+      <div class="hud-item hud-score">
+        <span class="hud-label">PULSE SCORE</span>
+        <span class="hud-val" id="hud-score-val">0</span>
+      </div>
+
+      <div class="hud-item hud-lives">
+        <span class="hud-label">CIRCUIT LIFE</span>
+        <div class="lives-hearts" id="hud-lives-val">
+          <span class="heart">🔋</span>
+          <span class="heart">🔋</span>
+          <span class="heart">🔋</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- MISSION / PATTERN GOAL BAR -->
+    <div class="mission-bar">
+      <div class="mission-info">
+        <span class="mission-tag" id="mission-rule-tag">ROTATION 90° CW</span>
+        <span class="mission-name" id="mission-pattern-name">Sequence Surge #1</span>
+      </div>
+      <div class="mission-progress-box">
+        <span class="progress-label">Sequences:</span>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="mission-progress-fill" style="width: 0%;"></div>
+        </div>
+        <span class="progress-counter" id="mission-progress-text">0/3</span>
+      </div>
+      <div class="multiplier-pill" id="multiplier-pill">x1 COMBO</div>
+    </div>
+
+    <!-- MAIN INTERACTIVE CANVAS -->
+    <div class="canvas-container" id="canvas-container">
+      <canvas id="canvas-circuit" width="800" height="420"></canvas>
+      <div class="floating-feedback" id="floating-feedback"></div>
+    </div>
+
+    <!-- TACTILE FORGE CONTROLS / TOOLBAR -->
+    <footer class="game-footer">
+      <div class="token-toolbox">
+        <div class="toolbox-label">TRANSFORM ACTIVE TOKEN:</div>
+        <div class="toolbox-buttons">
+          <button class="tool-btn" id="btn-rotate-cw" title="Rotate 90° Clockwise">
+            <span class="tool-icon">↻</span>
+            <span class="tool-text">Rotate 90°</span>
+          </button>
+          <button class="tool-btn" id="btn-flip-h" title="Flip Mirror Horizontally">
+            <span class="tool-icon">⇄</span>
+            <span class="tool-text">Flip Mirror</span>
+          </button>
+          <button class="tool-btn btn-lock" id="btn-lock-token" title="Lock & Insert Token">
+            <span class="tool-icon">⚡</span>
+            <span class="tool-text">LOCK IN SLOT</span>
+          </button>
+        </div>
+      </div>
+      <div class="helper-hint" id="helper-hint">
+        <span class="hint-icon">💡</span>
+        <span id="hint-text">Rotate the token so its symmetry matches the missing step, then tap Lock!</span>
+      </div>
+    </footer>
+  </section>
+
+  <!-- SCREEN 5: LEVEL UP MODAL -->
+  <div class="modal-overlay" id="modal-level-up">
+    <div class="modal-card">
+      <div class="modal-icon">🌟</div>
+      <h2 class="modal-title" id="levelup-title">Circuit Harmonized!</h2>
+      <p class="modal-subtitle" id="levelup-desc">The pattern frequency is stable. Advancing to higher order symmetry!</p>
+      <div class="level-stats-row">
+        <div class="mini-stat">
+          <span class="mini-stat-label">Level Bonus</span>
+          <span class="mini-stat-val" id="levelup-bonus">+250 pts</span>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-stat-label">Accuracy</span>
+          <span class="mini-stat-val" id="levelup-acc">100%</span>
+        </div>
+      </div>
+      <button class="game-btn btn-primary" id="btn-next-level">
+        <span class="btn-icon">⚡</span> Next Level
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 6: RESULTS SCREEN (Try Again & Submit calling game.end()) -->
+  <section class="screen" id="screen-result">
+    <div class="screen-card result-card">
+      <div class="result-badge" id="result-badge">CIRCUIT ARCHITECT</div>
+      <h1 class="result-title" id="result-title">Pattern Mastered!</h1>
+      <p class="result-subtitle" id="result-subtitle">You solved all rotational and reflective symmetry sequences with flawlessness!</p>
+
+      <!-- 3-Star Rating Animation -->
+      <div class="stars-container" id="stars-container">
+        <div class="star-slot" id="star-1">⭐</div>
+        <div class="star-slot" id="star-2">⭐</div>
+        <div class="star-slot" id="star-3">⭐</div>
+      </div>
+
+      <div class="stats-summary-grid">
+        <div class="stat-box">
+          <span class="stat-label">Final Score</span>
+          <span class="stat-number" id="result-score-val">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Circuits Solved</span>
+          <span class="stat-number" id="result-circuits-val">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Accuracy</span>
+          <span class="stat-number" id="result-accuracy-val">100%</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Max Combo</span>
+          <span class="stat-number" id="result-combo-val">x1</span>
+        </div>
+      </div>
+
+      <div class="result-btn-row">
+        <button class="game-btn btn-secondary" id="btn-try-again">
+          <span class="btn-icon">🔄</span> Try Again
+        </button>
+        <button class="game-btn btn-primary" id="btn-submit-score">
+          <span class="btn-icon">✅</span> Submit
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
